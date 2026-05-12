@@ -6,14 +6,14 @@
     <title>World</title>
     <style>
         :root {
-            --bg-dark: #2c2c2c;
+            --bg-dark: #1a1a1a;
             --morandi-gray: #9ca3af;
             --paper: #fdfdfd;
             --glass: rgba(255, 255, 255, 0.1);
             --text: #444;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; user-select: none; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', 'Helvetica Neue', sans-serif; user-select: none; }
         body, html { height: 100%; overflow: hidden; background: #000; }
 
         .screen {
@@ -24,7 +24,7 @@
         .active { display: flex; opacity: 1; }
 
         /* Universal UI */
-        .exit-btn { position: absolute; top: 40px; left: 40px; cursor: pointer; font-size: 0.7rem; letter-spacing: 3px; color: var(--text); z-index: 1000; }
+        .exit-btn { position: absolute; top: 40px; left: 40px; cursor: pointer; font-size: 0.7rem; letter-spacing: 3px; color: var(--text); z-index: 2000; border-bottom: 1px solid #ddd; }
 
         /* HOME */
         #screen-home {
@@ -34,7 +34,7 @@
         @keyframes gradientBG { 0% {background-position:0% 50%} 50% {background-position:100% 50%} 100% {background-position:0% 50%} }
         .glass-box { background: var(--glass); backdrop-filter: blur(15px); padding: 50px 70px; border: 1px solid rgba(255,255,255,0.1); }
         .menu-item { margin: 20px 0; letter-spacing: 5px; font-size: 0.9rem; color: #444; cursor: pointer; transition: 0.3s; text-align: center; }
-        .menu-item:hover { color: #000; letter-spacing: 7px; }
+        .menu-item:hover { color: #000; transform: translateY(-2px); }
 
         /* START - Layers & Canvas */
         #screen-start { background: var(--paper); }
@@ -43,27 +43,35 @@
         
         .layer-panel {
             position: absolute; right: 20px; top: 50%; transform: translateY(-50%);
-            width: 150px; background: rgba(255,255,255,0.8); backdrop-filter: blur(5px);
-            padding: 15px; border: 1px solid #eee; display: flex; flex-direction: column; gap: 10px; z-index: 100;
+            width: 180px; background: rgba(255,255,255,0.85); backdrop-filter: blur(10px);
+            padding: 15px; border: 1px solid #eee; display: flex; flex-direction: column; gap: 8px; z-index: 1500;
         }
-        .layer-item { font-size: 0.6rem; padding: 5px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; cursor: pointer; }
-        .layer-active { background: #f0f0f0; border-left: 2px solid #999; }
+        .layer-item { 
+            font-size: 0.6rem; padding: 8px; border: 1px solid #f0f0f0; 
+            display: flex; align-items: center; justify-content: space-between; cursor: pointer; 
+        }
+        .layer-active { background: #f0f0f0; border-left: 3px solid #9ca3af; }
+        .layer-btns { display: flex; gap: 5px; }
+        .layer-btn-sm { font-size: 0.5rem; color: #888; cursor: pointer; }
 
         /* REST - Sound Box */
-        #screen-rest { background: linear-gradient(to bottom, #111, #fff); }
+        #screen-rest { background: linear-gradient(to bottom, #000, #fff); }
         .sound-box {
             background: var(--glass); backdrop-filter: blur(10px);
             padding: 30px; border: 1px solid rgba(255,255,255,0.2);
-            display: flex; flex-direction: column; align-items: center; gap: 20px;
+            display: flex; flex-direction: column; align-items: center; gap: 20px; z-index: 10;
         }
-        .sound-icons { display: flex; gap: 20px; font-size: 1.2rem; color: #fff; mix-blend-mode: difference; }
-        .sound-btn { cursor: pointer; opacity: 0.5; transition: 0.3s; }
+        .sound-icons { display: flex; gap: 25px; font-size: 1.5rem; color: #fff; mix-blend-mode: difference; }
+        .sound-btn { cursor: pointer; opacity: 0.4; transition: 0.3s; }
         .sound-btn.playing { opacity: 1; transform: scale(1.2); }
 
-        /* General UI Elements */
-        .toolbar { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); display: flex; gap: 15px; padding: 10px 20px; background: rgba(255,255,255,0.8); z-index: 100; align-items: center;}
-        input[type="range"] { accent-color: #999; width: 80px; }
-        .floating-text { position: absolute; pointer-events: none; animation: fadeOut 3s forwards; font-size: 0.8rem; letter-spacing: 2px; }
+        /* Toolbar */
+        .toolbar { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); display: flex; gap: 15px; padding: 10px 25px; background: rgba(255,255,255,0.8); z-index: 1500; align-items: center; border-radius: 2px; }
+        input[type="range"] { accent-color: #999; width: 70px; }
+        .tool-label { font-size: 0.7rem; color: #777; cursor: pointer; letter-spacing: 1px; }
+        .active-tool { color: #000; font-weight: bold; }
+
+        .floating-text { position: absolute; pointer-events: none; animation: fadeOut 3s forwards; font-size: 0.8rem; letter-spacing: 2px; color: #333; }
         @keyframes fadeOut { 0%{opacity:0} 10%{opacity:1} 90%{opacity:1} 100%{opacity:0; transform:translateY(-20px)} }
     </style>
 </head>
@@ -81,18 +89,20 @@
     <section id="screen-start" class="screen">
         <div class="exit-btn" onclick="nav('screen-home')">EXIT</div>
         <div id="canvas-container"></div>
-        <div class="layer-panel" id="layer-panel">
-            <div style="font-size: 0.6rem; color: #999; margin-bottom: 5px;">LAYERS (Max 15)</div>
-            <div id="layers-list"></div>
-            <button onclick="addLayer()" style="font-size: 0.5rem; cursor: pointer; background: none; border: 1px solid #ccc;">+ NEW LAYER</button>
+        
+        <div class="layer-panel">
+            <div style="font-size: 0.6rem; color: #999; margin-bottom: 5px; letter-spacing: 1px;">LAYERS (MAX 15)</div>
+            <div id="layers-list" style="max-height: 300px; overflow-y: auto;"></div>
+            <button onclick="addLayer()" style="width:100%; font-size: 0.5rem; padding: 5px; cursor: pointer; background: #fff; border: 1px solid #ccc; margin-top: 5px;">+ NEW LAYER</button>
         </div>
+
         <div class="toolbar">
             <input type="color" id="pen-color" value="#8e9775" style="border:none; width:20px; height:20px; background:none;">
             <input type="range" id="pen-size" min="1" max="50" value="2">
-            <span onclick="setMode('pen')" style="cursor:pointer; font-size: 0.7rem;">PEN</span>
-            <span onclick="setMode('eraser')" style="cursor:pointer; font-size: 0.7rem;">ERASER</span>
-            <span onclick="toggleRuler()" id="ruler-btn" style="cursor:pointer; font-size: 0.7rem;">RULER</span>
-            <span onclick="undo()" style="cursor:pointer; font-size: 0.7rem;">UNDO</span>
+            <span class="tool-label" onclick="setMode('pen')">PEN</span>
+            <span class="tool-label" onclick="setMode('eraser')">ERASER</span>
+            <span class="tool-label" onclick="toggleRuler()" id="ruler-btn">RULER</span>
+            <span class="tool-label" onclick="undo()">UNDO</span>
         </div>
     </section>
 
@@ -114,7 +124,7 @@
         <div class="exit-btn" onclick="nav('screen-home')">EXIT</div>
         <div style="width: 60%; height: 50%;">
             <input type="range" min="12" max="60" value="20" oninput="document.getElementById('memo-area').style.fontSize = this.value+'px'" style="margin-bottom:20px;">
-            <textarea id="memo-area" style="width:100%; height:100%; background:transparent; border:none; outline:none; font-size:20px; resize:none; line-height:1.6; border-left: 1px solid #ddd; padding-left: 20px;" placeholder="Type here..."></textarea>
+            <textarea id="memo-area" style="width:100%; height:100%; background:transparent; border:none; outline:none; font-size:20px; resize:none; line-height:1.6; border-left: 1px solid #ddd; padding-left: 20px; color:#555;" placeholder="Type your thoughts..."></textarea>
         </div>
     </section>
 
@@ -126,107 +136,77 @@
     </section>
 
     <script>
-        // --- AUDIO SYSTEM (Web Audio API) ---
+        // --- AUDIO SYSTEM ---
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        let ambienceNode = null;
-        let ambienceGain = audioCtx.createGain();
+        let ambienceNode = null, ambienceGain = audioCtx.createGain();
         ambienceGain.connect(audioCtx.destination);
 
-        // Matte Thud Sound (碰撞音)
         function playThud() {
             const osc = audioCtx.createOscillator();
             const g = audioCtx.createGain();
             const filter = audioCtx.createBiquadFilter();
-            
-            filter.type = "lowpass";
-            filter.frequency.value = 400;
-            
+            filter.type = "lowpass"; filter.frequency.value = 400;
             osc.type = 'triangle';
             osc.frequency.setValueAtTime(150, audioCtx.currentTime);
             osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.1);
-            
-            g.gain.setValueAtTime(0.2, audioCtx.currentTime);
+            g.gain.setValueAtTime(0.15, audioCtx.currentTime);
             g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
-            
-            osc.connect(filter);
-            filter.connect(g);
-            g.connect(audioCtx.destination);
-            
-            osc.start();
-            osc.stop(audioCtx.currentTime + 0.2);
+            osc.connect(filter); filter.connect(g); g.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.2);
         }
 
-        // Friction Sound (摩擦音)
         function playFriction(isActive) {
             if (!window.frictionNode) {
                 const bufferSize = 2 * audioCtx.sampleRate;
                 const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
                 const output = buffer.getChannelData(0);
                 for (let i = 0; i < bufferSize; i++) output[i] = Math.random() * 2 - 1;
-                
                 window.frictionSource = audioCtx.createBufferSource();
-                window.frictionSource.buffer = buffer;
-                window.frictionSource.loop = true;
-                
+                window.frictionSource.buffer = buffer; window.frictionSource.loop = true;
                 window.frictionGain = audioCtx.createGain();
                 window.frictionFilter = audioCtx.createBiquadFilter();
-                window.frictionFilter.type = "bandpass";
-                window.frictionFilter.frequency.value = 1000;
-                
+                window.frictionFilter.type = "bandpass"; window.frictionFilter.frequency.value = 1200;
                 window.frictionGain.gain.value = 0;
-                window.frictionSource.connect(window.frictionFilter);
-                window.frictionFilter.connect(window.frictionGain);
-                window.frictionGain.connect(audioCtx.destination);
-                window.frictionSource.start();
+                window.frictionSource.connect(window.frictionFilter); window.frictionFilter.connect(window.frictionGain);
+                window.frictionGain.connect(audioCtx.destination); window.frictionSource.start();
                 window.frictionNode = true;
             }
-            window.frictionGain.gain.setTargetAtTime(isActive ? 0.02 : 0, audioCtx.currentTime, 0.05);
+            window.frictionGain.gain.setTargetAtTime(isActive ? 0.03 : 0, audioCtx.currentTime, 0.05);
         }
 
-        // AMBIENCE SYNTHS
-        function createNoiseNode() {
+        // --- AMBIENCE ---
+        function createNoise() {
             const bufferSize = audioCtx.sampleRate * 2;
             const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
             const data = buffer.getChannelData(0);
             for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
-            const noise = audioCtx.createBufferSource();
-            noise.buffer = buffer; noise.loop = true;
-            return noise;
+            const source = audioCtx.createBufferSource();
+            source.buffer = buffer; source.loop = true;
+            return source;
         }
 
         function toggleAmbience(type, btn) {
             if (ambienceNode) {
-                ambienceNode.stop();
-                ambienceNode = null;
+                ambienceNode.stop(); ambienceNode = null;
                 document.querySelectorAll('.sound-btn').forEach(b => b.classList.remove('playing'));
                 document.getElementById('ambience-status').innerText = "PAUSED";
                 if (btn.dataset.type === type) { delete btn.dataset.type; return; }
             }
-            
             playThud();
-            const noise = createNoiseNode();
-            const filter = audioCtx.createBiquadFilter();
-            
-            if (type === 'rain') { filter.type = "lowpass"; filter.frequency.value = 1200; }
-            if (type === 'stream') { filter.type = "bandpass"; filter.frequency.value = 800; filter.Q.value = 1; }
+            const noise = createNoise(); const filter = audioCtx.createBiquadFilter();
+            if (type === 'rain') { filter.type = "lowpass"; filter.frequency.value = 1000; }
+            if (type === 'stream') { filter.type = "bandpass"; filter.frequency.value = 700; }
             if (type === 'ocean') { 
-                filter.type = "lowpass"; filter.frequency.value = 500;
-                const lfo = audioCtx.createOscillator();
-                const lfoGain = audioCtx.createGain();
-                lfo.frequency.value = 0.2; lfoGain.gain.value = 300;
-                lfo.connect(lfoGain); lfoGain.connect(filter.frequency); lfo.start();
+                filter.type = "lowpass"; filter.frequency.value = 400;
+                const lfo = audioCtx.createOscillator(); const lfoG = audioCtx.createGain();
+                lfo.frequency.value = 0.15; lfoG.gain.value = 200;
+                lfo.connect(lfoG); lfoG.connect(filter.frequency); lfo.start();
             }
-            if (type === 'wind') { filter.type = "lowpass"; filter.frequency.value = 400; filter.Q.value = 5; }
-
-            noise.connect(filter);
-            filter.connect(ambienceGain);
-            noise.start();
-            ambienceNode = noise;
-            btn.classList.add('playing');
-            btn.dataset.type = type;
+            if (type === 'wind') { filter.type = "lowpass"; filter.frequency.value = 300; filter.Q.value = 6; }
+            noise.connect(filter); filter.connect(ambienceGain); noise.start();
+            ambienceNode = noise; btn.classList.add('playing'); btn.dataset.type = type;
             document.getElementById('ambience-status').innerText = type.toUpperCase();
         }
-
         function setAmbienceVolume(v) { ambienceGain.gain.value = v; }
 
         // --- NAVIGATION ---
@@ -237,151 +217,148 @@
             if (id === 'screen-start' && !window.canvasInit) initLayerSystem();
         }
 
-        // --- LAYER & CANVAS SYSTEM ---
-        let layers = [];
-        let activeLayerIndex = 0;
-        let isDrawing = false;
-        let mode = 'pen';
-        let useRuler = false;
-        let startX, startY;
+        // --- LAYER SYSTEM ---
+        let layers = [], activeIdx = 0, isDrawing = false, mode = 'pen', useRuler = false, startX, startY;
 
         function initLayerSystem() {
-            const container = document.getElementById('canvas-container');
-            container.innerHTML = '';
-            layers = [];
-            addLayer();
-            window.canvasInit = true;
+            document.getElementById('canvas-container').innerHTML = '';
+            layers = []; addLayer(); window.canvasInit = true;
         }
 
         function addLayer() {
             if (layers.length >= 15) return;
-            playThud();
             const canvas = document.createElement('canvas');
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            canvas.style.zIndex = layers.length;
+            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
             document.getElementById('canvas-container').appendChild(canvas);
-            
-            const layer = {
-                canvas: canvas,
-                ctx: canvas.getContext('2d'),
-                visible: true,
-                history: []
-            };
-            layers.push(layer);
-            setActiveLayer(layers.length - 1);
-            updateLayerPanel();
+            const l = { canvas, ctx: canvas.getContext('2d'), visible: true, history: [] };
+            layers.push(l); setActiveLayer(layers.length - 1);
         }
 
-        function setActiveLayer(index) {
-            activeLayerIndex = index;
-            layers.forEach((l, i) => {
-                l.canvas.style.pointerEvents = (i === index) ? 'auto' : 'none';
+        function setActiveLayer(idx) {
+            activeIdx = idx;
+            layers.forEach((l, i) => { 
+                l.canvas.style.pointerEvents = (i === idx) ? 'auto' : 'none';
+                l.canvas.style.zIndex = i;
             });
-            // Re-attach listeners to top active layer
-            const c = layers[index].canvas;
-            c.onmousedown = startDraw;
-            c.onmousemove = drawMove;
-            c.onmouseup = stopDraw;
-            updateLayerPanel();
+            const c = layers[idx].canvas;
+            c.onmousedown = (e) => startDraw(e);
+            c.onmousemove = (e) => moveDraw(e);
+            c.onmouseup = (e) => endDraw(e);
+            // Touch
+            c.ontouchstart = (e) => startDraw(e.touches[0]);
+            c.ontouchmove = (e) => moveDraw(e.touches[0]);
+            c.ontouchend = (e) => endDraw(e.changedTouches[0]);
+            updateLayerUI();
         }
 
         function startDraw(e) {
-            isDrawing = true;
-            startX = e.clientX; startY = e.clientY;
-            const ctx = layers[activeLayerIndex].ctx;
-            ctx.beginPath();
-            ctx.moveTo(startX, startY);
+            isDrawing = true; startX = e.clientX; startY = e.clientY;
+            layers[activeIdx].ctx.beginPath(); layers[activeIdx].ctx.moveTo(startX, startY);
             playFriction(true);
         }
 
-        function drawMove(e) {
+        function moveDraw(e) {
             if (!isDrawing) return;
-            const l = layers[activeLayerIndex];
-            const ctx = l.ctx;
+            const ctx = layers[activeIdx].ctx;
             ctx.lineWidth = document.getElementById('pen-size').value;
             ctx.lineCap = 'round';
             ctx.strokeStyle = (mode === 'eraser') ? '#fdfdfd' : document.getElementById('pen-color').value;
-            
-            if (!useRuler) {
-                ctx.lineTo(e.clientX, e.clientY);
-                ctx.stroke();
-            }
+            if (!useRuler) { ctx.lineTo(e.clientX, e.clientY); ctx.stroke(); }
         }
 
-        function stopDraw(e) {
-            if (useRuler && isDrawing) {
-                const ctx = layers[activeLayerIndex].ctx;
-                ctx.lineTo(e.clientX, e.clientY);
-                ctx.stroke();
+        function endDraw(e) {
+            if (isDrawing && useRuler) {
+                const ctx = layers[activeIdx].ctx;
+                ctx.lineTo(e.clientX, e.clientY); ctx.stroke();
             }
-            isDrawing = false;
-            playFriction(false);
+            isDrawing = false; playFriction(false); saveHistory();
         }
 
-        function updateLayerPanel() {
-            const list = document.getElementById('layers-list');
-            list.innerHTML = '';
+        function updateLayerUI() {
+            const list = document.getElementById('layers-list'); list.innerHTML = '';
             layers.slice().reverse().forEach((l, i) => {
                 const realIdx = layers.length - 1 - i;
-                const item = document.createElement('div');
-                item.className = `layer-item ${realIdx === activeLayerIndex ? 'layer-active' : ''}`;
-                item.innerHTML = `
-                    <span onclick="setActiveLayer(${realIdx})">Layer ${realIdx + 1}</span>
-                    <span onclick="toggleLayerVis(${realIdx})">${l.visible ? '👁' : '◌'}</span>
-                    <span onclick="deleteLayer(${realIdx})">×</span>
+                const div = document.createElement('div');
+                div.className = `layer-item ${realIdx === activeIdx ? 'layer-active' : ''}`;
+                div.innerHTML = `
+                    <span onclick="setActiveLayer(${realIdx})">L${realIdx + 1}</span>
+                    <div class="layer-btns">
+                        <span class="layer-btn-sm" onclick="toggleLayer(${realIdx})">${l.visible?'👁':'◌'}</span>
+                        <span class="layer-btn-sm" onclick="copyLayer(${realIdx})">❐</span>
+                        <span class="layer-btn-sm" onclick="moveLayer(${realIdx}, 1)">↑</span>
+                        <span class="layer-btn-sm" onclick="moveLayer(${realIdx}, -1)">↓</span>
+                        <span class="layer-btn-sm" onclick="delLayer(${realIdx})">×</span>
+                    </div>
                 `;
-                list.appendChild(item);
+                list.appendChild(div);
             });
         }
 
-        function toggleLayerVis(idx) {
+        function toggleLayer(idx) {
             layers[idx].visible = !layers[idx].visible;
             layers[idx].canvas.style.display = layers[idx].visible ? 'block' : 'none';
-            updateLayerPanel();
+            updateLayerUI();
         }
 
-        function deleteLayer(idx) {
+        function delLayer(idx) {
             if (layers.length <= 1) return;
             document.getElementById('canvas-container').removeChild(layers[idx].canvas);
-            layers.splice(idx, 1);
-            setActiveLayer(Math.max(0, idx - 1));
+            layers.splice(idx, 1); setActiveLayer(Math.max(0, idx-1));
+        }
+
+        function copyLayer(idx) {
+            if (layers.length >= 15) return;
+            addLayer();
+            const newLayer = layers[layers.length - 1];
+            newLayer.ctx.drawImage(layers[idx].canvas, 0, 0);
+            updateLayerUI();
+        }
+
+        function moveLayer(idx, dir) {
+            let target = idx + dir;
+            if (target < 0 || target >= layers.length) return;
+            [layers[idx], layers[target]] = [layers[target], layers[idx]];
+            setActiveLayer(target);
+        }
+
+        function saveHistory() {
+            const l = layers[activeIdx];
+            if (l.history.length > 20) l.history.shift();
+            l.history.push(l.canvas.toDataURL());
+        }
+
+        function undo() {
+            const l = layers[activeIdx];
+            if (l.history.length > 1) {
+                l.history.pop();
+                const img = new Image(); img.src = l.history[l.history.length-1];
+                img.onload = () => { l.ctx.clearRect(0,0,l.canvas.width,l.canvas.height); l.ctx.drawImage(img,0,0); }
+            }
         }
 
         function setMode(m) { mode = m; useRuler = false; playThud(); }
-        function toggleRuler() { useRuler = !useRuler; document.getElementById('ruler-btn').style.color = useRuler ? '#000' : '#888'; playThud(); }
+        function toggleRuler() { useRuler = !useRuler; document.getElementById('ruler-btn').style.color = useRuler?'#000':'#777'; playThud(); }
 
-        // --- REST TEXT ---
+        // --- MISC ---
         function spawnRestText(e) {
-            const t = document.createElement('div');
-            t.className = 'floating-text';
-            t.style.left = e.clientX + 'px';
-            t.style.top = e.clientY + 'px';
-            t.style.color = '#333';
-            t.innerText = "I love 15/16";
-            document.getElementById('screen-rest').appendChild(t);
+            const t = document.createElement('div'); t.className = 'floating-text';
+            t.style.left = e.clientX + 'px'; t.style.top = e.clientY + 'px';
+            t.innerText = "I love 15/16"; document.getElementById('screen-rest').appendChild(t);
             setTimeout(() => t.remove(), 3000);
         }
 
-        // --- SETTING & TYPING ---
         function settingTrigger(msg) {
-            const t = document.createElement('div');
-            t.className = 'floating-text';
+            const t = document.createElement('div'); t.className = 'floating-text';
             t.style.bottom = '20%'; t.style.left = '50%'; t.style.transform = 'translateX(-50%)';
-            t.innerText = msg;
-            document.body.appendChild(t);
+            t.innerText = msg; document.body.appendChild(t);
             setTimeout(() => t.remove(), 3000);
         }
 
         document.getElementById('memo-area').oninput = () => {
-            // Typing sounds remain standard light sine for clarity
-            const osc = audioCtx.createOscillator();
-            const g = audioCtx.createGain();
-            osc.frequency.value = 400 + Math.random() * 100;
-            g.gain.setValueAtTime(0.02, audioCtx.currentTime);
+            const osc = audioCtx.createOscillator(); const g = audioCtx.createGain();
+            osc.frequency.value = 300 + Math.random() * 50; g.gain.setValueAtTime(0.02, audioCtx.currentTime);
             g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
-            osc.connect(g); g.connect(audioCtx.destination);
-            osc.start(); osc.stop(audioCtx.currentTime + 0.05);
+            osc.connect(g); g.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.05);
         };
     </script>
 </body>
