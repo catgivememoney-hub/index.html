@@ -6,138 +6,83 @@
     <title>World</title>
     <style>
         :root {
-            /* Morandi Palette */
             --bg-dark: #2c2c2c;
-            --bg-light: #f4f4f4;
-            --paper: #fdfdfd;
             --morandi-gray: #9ca3af;
-            --morandi-blue: #b4c4d5;
-            --morandi-sage: #c1cdc1;
-            --text-main: #333333;
+            --paper: #fdfdfd;
             --glass: rgba(255, 255, 255, 0.12);
+            --text-main: #333333;
+            --border: #e5e7eb;
         }
 
-        * {
-            margin: 0; padding: 0; box-sizing: border-box;
-            font-family: 'Inter', 'Helvetica Neue', sans-serif;
-            user-select: none; -webkit-tap-highlight-color: transparent;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; user-select: none; -webkit-tap-highlight-color: transparent; }
         body, html { height: 100%; overflow: hidden; background: #000; }
 
-        @keyframes gradientBG {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        @keyframes fadeOut {
-            0% { opacity: 0; transform: translateY(10px); }
-            15% { opacity: 1; transform: translateY(0); }
-            85% { opacity: 1; }
-            100% { opacity: 0; transform: translateY(-20px); }
-        }
-
-        .screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            display: none; flex-direction: column; align-items: center; justify-content: center;
-            transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
+        /* Universal UI */
+        .screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: none; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.6s ease; }
         .active { display: flex; opacity: 1; }
+        .exit-btn { position: absolute; top: 40px; left: 40px; cursor: pointer; font-size: 0.7rem; letter-spacing: 3px; color: var(--text-main); border-bottom: 1px solid rgba(0,0,0,0.1); z-index: 2000; }
 
-        .exit-btn {
-            position: absolute; top: 40px; left: 40px; cursor: pointer;
-            font-size: 0.7rem; letter-spacing: 3px; color: var(--text-main);
-            border-bottom: 1px solid rgba(0,0,0,0.1); z-index: 2000; transition: 0.3s;
-        }
-        .exit-btn:hover { border-bottom: 1px solid var(--text-main); }
-
-        /* --- HOME --- */
-        #screen-home {
-            background: linear-gradient(-45deg, #1a1a1a, #4a4a4a, #ffffff, #d3d3d3);
-            background-size: 400% 400%; animation: gradientBG 15s ease infinite;
-        }
-
-        .title {
-            position: absolute; top: 15%; font-size: 3.5rem; font-weight: 100;
-            letter-spacing: 15px; color: #fff; mix-blend-mode: difference;
-        }
-
-        .glass-container {
-            background: var(--glass); backdrop-filter: blur(15px);
-            padding: 60px 80px; border: 1px solid rgba(255,255,255,0.1);
-            box-shadow: 0 20px 50px rgba(0,0,0,0.1);
-        }
-
-        .menu-item {
-            list-style: none; margin: 25px 0; font-size: 0.9rem; letter-spacing: 5px;
-            color: #444; cursor: pointer; transition: 0.4s; text-align: center;
-        }
+        /* HOME */
+        #screen-home { background: linear-gradient(-45deg, #1a1a1a, #4a4a4a, #ffffff, #d3d3d3); background-size: 400% 400%; animation: gradientBG 15s ease infinite; }
+        @keyframes gradientBG { 0% {background-position:0% 50%} 50% {background-position:100% 50%} 100% {background-position:0% 50%} }
+        .glass-box { background: var(--glass); backdrop-filter: blur(15px); padding: 60px 80px; border: 1px solid rgba(255,255,255,0.1); }
+        .menu-item { margin: 25px 0; letter-spacing: 5px; font-size: 0.9rem; color: #444; cursor: pointer; transition: 0.4s; text-align: center; }
         .menu-item:hover { color: #000; transform: translateY(-2px); }
 
-        /* --- START (Drawing with Layers) --- */
+        /* START - Layers & Canvas */
         #screen-start { background: var(--paper); }
-        
         #canvas-container { position: relative; width: 100%; height: 100%; }
         canvas { position: absolute; top: 0; left: 0; cursor: crosshair; touch-action: none; }
 
-        /* Layer Panel Style */
+        /* Layer Panel - Minimalist Style */
         .layer-panel {
             position: absolute; right: 20px; top: 50%; transform: translateY(-50%);
-            width: 180px; background: rgba(255,255,255,0.8); backdrop-filter: blur(10px);
-            border: 1px solid #eee; padding: 15px; display: flex; flex-direction: column; gap: 8px; z-index: 1500;
+            width: 200px; background: rgba(255,255,255,0.9); backdrop-filter: blur(10px);
+            border: 1px solid var(--border); padding: 15px; z-index: 1500;
         }
         .layer-item {
-            font-size: 0.65rem; padding: 8px; border: 1px solid #f0f0f0;
+            font-size: 0.65rem; padding: 10px; border-bottom: 1px solid #f0f0f0;
             display: flex; align-items: center; justify-content: space-between; cursor: pointer;
-            transition: 0.2s; background: #fff;
         }
-        .layer-active { border-left: 4px solid var(--morandi-gray); background: #fafafa; }
-        .layer-btns { display: flex; gap: 6px; }
-        .l-btn { cursor: pointer; color: #888; }
-        .l-btn:hover { color: #000; }
+        .layer-active { background: #f9f9f9; border-left: 3px solid var(--morandi-gray); }
+        .layer-controls { display: flex; gap: 10px; align-items: center; }
+
+        /* CSS Icons (Replacement for Emojis) */
+        .icon { width: 14px; height: 14px; border: 1.5px solid #888; position: relative; transition: 0.2s; cursor: pointer; }
+        .icon:hover { border-color: #000; }
+        .icon-eye { border-radius: 80% 10%; transform: rotate(45deg); } /* Minimalist Eye */
+        .icon-eye.hidden { opacity: 0.3; }
+        .icon-copy { border-radius: 2px; }
+        .icon-copy::after { content: ''; position: absolute; top: -4px; right: -4px; width: 10px; height: 10px; border: 1.5px solid #888; border-radius: 2px; }
+        .icon-del { border: none; }
+        .icon-del::before, .icon-del::after { content: ''; position: absolute; top: 50%; width: 100%; height: 1.5px; background: #888; transform: rotate(45deg); }
+        .icon-del::after { transform: rotate(-45deg); }
+        .icon-arrow { border: none; width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; }
+        .icon-up { border-bottom: 8px solid #888; }
+        .icon-down { border-top: 8px solid #888; }
 
         .toolbar {
             position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
-            display: flex; gap: 20px; background: rgba(255,255,255,0.7);
-            backdrop-filter: blur(10px); padding: 12px 25px; align-items: center;
-            border: 1px solid #eee; z-index: 1500;
+            display: flex; gap: 20px; background: rgba(255,255,255,0.8);
+            padding: 12px 25px; align-items: center; border: 1px solid var(--border); z-index: 1500;
         }
+        .tool-btn { font-size: 0.7rem; color: #888; cursor: pointer; letter-spacing: 1px; }
+        .tool-btn:hover { color: #000; }
+        input[type="color"] { border: none; width: 18px; height: 18px; background: none; cursor: pointer; }
+        input[type="range"] { width: 60px; accent-color: #999; }
 
-        .tool-icon { font-size: 0.7rem; letter-spacing: 1px; cursor: pointer; color: #888; transition: 0.3s; }
-        .tool-icon:hover { color: #000; }
+        /* REST */
+        #screen-rest { background: linear-gradient(to bottom, #111, #fff); }
+        .floating-text { position: absolute; pointer-events: none; animation: fadeOut 3s forwards; font-size: 0.85rem; letter-spacing: 2px; color: #333; font-weight: 300; }
+        @keyframes fadeOut { 0%{opacity:0} 15%{opacity:1} 85%{opacity:1} 100%{opacity:0; transform:translateY(-20px)} }
 
-        /* --- REST & OTHERS --- */
-        #screen-rest { background: linear-gradient(to bottom, #111, #fff); cursor: crosshair; }
-        .floating-text {
-            position: absolute; font-weight: 200; font-size: 0.9rem; letter-spacing: 2px;
-            pointer-events: none; animation: fadeOut 3s forwards; color: var(--text-main);
-        }
-
-        #screen-end { background: #f9f9f9; }
-        .memo-wrap { width: 70%; max-width: 700px; height: 50%; }
-        textarea {
-            width: 100%; height: 100%; border: none; outline: none;
-            background: transparent; font-size: 1.2rem; line-height: 1.8;
-            color: #555; resize: none; font-weight: 300;
-        }
-
-        #screen-setting { background: #efefef; }
-        .setting-opt { margin: 20px; letter-spacing: 3px; font-size: 0.8rem; color: #888; cursor: pointer; transition: 0.3s; }
-        .setting-opt:hover { color: #000; }
-
-        .status-bar {
-            position: absolute; bottom: 30px; right: 40px; font-size: 0.6rem;
-            letter-spacing: 2px; color: #aaa; font-weight: 200;
-        }
+        .status-bar { position: absolute; bottom: 30px; right: 40px; font-size: 0.6rem; color: #aaa; letter-spacing: 2px; }
     </style>
 </head>
 <body>
 
     <section id="screen-home" class="screen active">
-        <h1 class="title">WORLD</h1>
-        <div class="glass-container">
+        <div class="glass-box">
             <div class="menu-item" onclick="nav('screen-start')">START</div>
             <div class="menu-item" onclick="nav('screen-rest')">REST</div>
             <div class="menu-item" onclick="nav('screen-end')">END</div>
@@ -148,63 +93,61 @@
 
     <section id="screen-start" class="screen">
         <div class="exit-btn" onclick="nav('screen-home')">BACK</div>
-        
         <div id="canvas-container"></div>
-
+        
         <div class="layer-panel">
-            <div style="font-size: 0.6rem; color: #999; margin-bottom: 5px; letter-spacing: 1px;">LAYERS (MAX 15)</div>
-            <div id="layers-list" style="max-height: 250px; overflow-y: auto;"></div>
-            <button onclick="addLayer()" style="width:100%; font-size: 0.55rem; padding: 5px; cursor: pointer; background: #fff; border: 1px solid #ccc; margin-top: 5px;">+ NEW LAYER</button>
+            <div style="font-size: 0.6rem; color: #bbb; margin-bottom: 10px;">LAYERS (MAX 15)</div>
+            <div id="layers-list"></div>
+            <button onclick="addLayer()" style="width:100%; margin-top: 10px; font-size: 0.55rem; padding: 6px; cursor: pointer; background: #fff; border: 1px solid #ddd; color: #666;">ADD LAYER</button>
         </div>
 
         <div class="toolbar">
-            <span id="mode-hint" style="font-size: 0.6rem; color: #bbb; margin-right:10px;">PEN MODE</span>
-            <input type="color" id="color" value="#6d7a71"> 
+            <input type="color" id="color" value="#6d7a71">
             <input type="range" id="size" min="1" max="50" value="2">
-            <span class="tool-icon" onclick="setTool('pen')">PEN</span>
-            <span class="tool-icon" onclick="setTool('eraser')">ERASER</span>
-            <span class="tool-icon" onclick="setTool('ruler')">RULER</span>
-            <span class="tool-icon" onclick="undo()">UNDO</span>
-            <span class="tool-icon" onclick="saveCanvas()">SAVE</span>
+            <span class="tool-btn" onclick="setTool('pen')">PEN</span>
+            <span class="tool-btn" onclick="setTool('eraser')">ERASER</span>
+            <span class="tool-btn" onclick="setTool('ruler')">RULER</span>
+            <span class="tool-btn" onclick="undo()">UNDO</span>
+            <span class="tool-btn" onclick="redo()">REDO</span>
         </div>
     </section>
 
     <section id="screen-rest" class="screen" onclick="spawnText(event)">
         <div class="exit-btn" onclick="nav('screen-home')">BACK</div>
-        <div style="color: rgba(255,255,255,0.2); font-weight:100; letter-spacing:10px;">SILENCE</div>
+        <div style="color: rgba(255,255,255,0.15); letter-spacing: 15px; font-weight: 100;">RESTING</div>
     </section>
 
     <section id="screen-end" class="screen">
         <div class="exit-btn" onclick="nav('screen-home')">BACK</div>
-        <div class="memo-wrap">
-            <input type="range" min="12" max="40" value="18" oninput="document.getElementById('note').style.fontSize = this.value+'px'" style="margin-bottom:30px;">
-            <textarea id="note" placeholder="Write down your thoughts..."></textarea>
-        </div>
+        <textarea id="note" style="width: 60%; height: 40%; background: transparent; border: none; border-left: 1px solid #ddd; padding: 20px; outline: none; font-size: 1.1rem; color: #555;" placeholder="Memories..."></textarea>
     </section>
 
     <section id="screen-setting" class="screen">
         <div class="exit-btn" onclick="nav('screen-home')">BACK</div>
-        <div class="setting-opt" onclick="nav('screen-home')">FRUIT CUP</div>
-        <div class="setting-opt" onclick="toast('I love you')">MANGO</div>
-        <div class="setting-opt" onclick="toast('I love you too')">GRAPE</div>
+        <div class="menu-item" onclick="nav('screen-home')">FRUIT CUP</div>
+        <div class="menu-item" onclick="toast('I love you')">MANGO</div>
+        <div class="menu-item" onclick="toast('I love you too')">GRAPE</div>
     </section>
 
     <script>
-        // --- Core Navigation ---
+        // --- AUDIO SYSTEM (Matte Thud Sound) ---
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        
-        function playTone(freq, type, duration) {
+        function playThud() {
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
-            osc.type = type; osc.frequency.value = freq;
-            gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            osc.start(); osc.stop(audioCtx.currentTime + duration);
+            const filter = audioCtx.createBiquadFilter();
+            filter.type = "lowpass"; filter.frequency.value = 400;
+            osc.type = 'triangle'; osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.12);
+            gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+            osc.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.2);
         }
 
+        // --- NAVIGATION ---
         function nav(id) {
-            playTone(200, 'sine', 0.5);
+            playThud();
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
             if(id === 'screen-start' && !window.canvasInit) initLayerSystem();
@@ -214,20 +157,17 @@
             document.getElementById('time-display').innerText = new Date().toLocaleTimeString('en-GB');
         }, 1000);
 
-        // --- Layered Drawing Logic ---
-        let layers = [], activeIdx = 0, tool = 'pen', drawing = false, startX, startY;
+        // --- LAYER SYSTEM ---
+        let layers = [], activeIdx = 0, tool = 'pen', drawing = false;
 
         function initLayerSystem() {
             document.getElementById('canvas-container').innerHTML = '';
-            layers = [];
-            addLayer(); // Default First Layer
-            window.canvasInit = true;
+            layers = []; addLayer(); window.canvasInit = true;
         }
 
         function addLayer() {
             if (layers.length >= 15) return;
-            playTone(300, 'sine', 0.2);
-            
+            playThud();
             const canvas = document.createElement('canvas');
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
@@ -237,12 +177,12 @@
                 canvas: canvas,
                 ctx: canvas.getContext('2d'),
                 visible: true,
-                history: []
+                undoStack: [],
+                redoStack: []
             };
-            
             layers.push(layer);
             setActiveLayer(layers.length - 1);
-            updateLayerUI();
+            saveState(); // Initial empty state
         }
 
         function setActiveLayer(idx) {
@@ -251,74 +191,35 @@
                 l.canvas.style.pointerEvents = (i === idx) ? 'auto' : 'none';
                 l.canvas.style.zIndex = i;
             });
-            
-            // Re-bind events to the new active canvas
             const c = layers[idx].canvas;
-            c.onmousedown = start;
-            c.onmousemove = move;
-            c.onmouseup = end;
-            c.ontouchstart = (e) => start(e.touches[0]);
-            c.ontouchmove = (e) => move(e.touches[0]);
-            c.ontouchend = end;
-
+            c.onmousedown = startDraw; c.onmousemove = moveDraw; c.onmouseup = endDraw;
             updateLayerUI();
-        }
-
-        function start(e) {
-            drawing = true;
-            startX = e.clientX; startY = e.clientY;
-            const ctx = layers[activeIdx].ctx;
-            ctx.beginPath();
-            ctx.moveTo(startX, startY);
-            if(tool === 'pen') playTone(400, 'triangle', 0.1);
-        }
-
-        function move(e) {
-            if (!drawing) return;
-            const ctx = layers[activeIdx].ctx;
-            ctx.lineWidth = document.getElementById('size').value;
-            ctx.lineCap = 'round';
-            ctx.strokeStyle = (tool === 'eraser') ? '#fdfdfd' : document.getElementById('color').value;
-            
-            if (tool !== 'ruler') {
-                ctx.lineTo(e.clientX, e.clientY);
-                ctx.stroke();
-            }
-        }
-
-        function end(e) {
-            if (tool === 'ruler' && drawing) {
-                const ex = e.clientX || e.changedTouches[0].clientX;
-                const ey = e.clientY || e.changedTouches[0].clientY;
-                const ctx = layers[activeIdx].ctx;
-                ctx.lineTo(ex, ey);
-                ctx.stroke();
-            }
-            drawing = false;
-            saveState();
         }
 
         function updateLayerUI() {
             const list = document.getElementById('layers-list');
             list.innerHTML = '';
-            // Display top layers first
             layers.slice().reverse().forEach((l, i) => {
                 const realIdx = layers.length - 1 - i;
                 const div = document.createElement('div');
                 div.className = `layer-item ${realIdx === activeIdx ? 'layer-active' : ''}`;
                 div.innerHTML = `
-                    <span onclick="setActiveLayer(${realIdx})">Layer ${realIdx + 1}</span>
-                    <div class="layer-btns">
-                        <span class="l-btn" onclick="toggleVis(${realIdx})">${l.visible?'👁':'◌'}</span>
-                        <span class="l-btn" onclick="copyLayer(${realIdx})">❐</span>
-                        <span class="l-btn" onclick="delLayer(${realIdx})">×</span>
+                    <span onclick="setActiveLayer(${realIdx})">LAYER ${realIdx + 1}</span>
+                    <div class="layer-controls">
+                        <div class="icon icon-eye ${l.visible?'':'hidden'}" onclick="toggleVis(${realIdx})"></div>
+                        <div class="icon icon-copy" onclick="copyLayer(${realIdx})"></div>
+                        <div class="icon icon-arrow icon-up" onclick="moveLayer(${realIdx}, 1)"></div>
+                        <div class="icon icon-arrow icon-down" onclick="moveLayer(${realIdx}, -1)"></div>
+                        <div class="icon icon-del" onclick="delLayer(${realIdx})"></div>
                     </div>
                 `;
                 list.appendChild(div);
             });
         }
 
+        // --- LAYER ACTIONS ---
         function toggleVis(idx) {
+            playThud();
             layers[idx].visible = !layers[idx].visible;
             layers[idx].canvas.style.display = layers[idx].visible ? 'block' : 'none';
             updateLayerUI();
@@ -326,7 +227,7 @@
 
         function delLayer(idx) {
             if (layers.length <= 1) return;
-            playTone(150, 'sine', 0.2);
+            playThud();
             document.getElementById('canvas-container').removeChild(layers[idx].canvas);
             layers.splice(idx, 1);
             setActiveLayer(Math.max(0, idx - 1));
@@ -335,75 +236,89 @@
         function copyLayer(idx) {
             if (layers.length >= 15) return;
             addLayer();
-            const newCtx = layers[layers.length - 1].ctx;
-            newCtx.drawImage(layers[idx].canvas, 0, 0);
+            layers[layers.length-1].ctx.drawImage(layers[idx].canvas, 0, 0);
+            saveState();
+        }
+
+        function moveLayer(idx, dir) {
+            let target = idx + dir;
+            if (target < 0 || target >= layers.length) return;
+            playThud();
+            [layers[idx], layers[target]] = [layers[target], layers[idx]];
+            setActiveLayer(target);
+        }
+
+        // --- DRAWING & UNDO/REDO ---
+        function startDraw(e) {
+            drawing = true;
+            const ctx = layers[activeIdx].ctx;
+            ctx.beginPath(); ctx.moveTo(e.clientX, e.clientY);
+            layers[activeIdx].redoStack = []; // Clear redo on new stroke
+        }
+
+        function moveDraw(e) {
+            if (!drawing) return;
+            const ctx = layers[activeIdx].ctx;
+            ctx.lineWidth = document.getElementById('size').value;
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = (tool === 'eraser') ? '#fdfdfd' : document.getElementById('color').value;
+            if (tool !== 'ruler') { ctx.lineTo(e.clientX, e.clientY); ctx.stroke(); }
+        }
+
+        function endDraw() {
+            if (drawing) { drawing = false; saveState(); }
         }
 
         function saveState() {
             const l = layers[activeIdx];
-            if (l.history.length > 20) l.history.shift();
-            l.history.push(l.canvas.toDataURL());
+            if (l.undoStack.length > 30) l.undoStack.shift();
+            l.undoStack.push(l.canvas.toDataURL());
         }
 
         function undo() {
             const l = layers[activeIdx];
-            if (l.history.length > 1) {
-                l.history.pop();
-                let img = new Image();
-                img.src = l.history[l.history.length - 1];
-                img.onload = () => {
-                    l.ctx.clearRect(0,0,l.canvas.width, l.canvas.height);
-                    l.ctx.drawImage(img, 0, 0);
-                }
+            if (l.undoStack.length > 1) {
+                playThud();
+                l.redoStack.push(l.undoStack.pop());
+                restoreState(l, l.undoStack[l.undoStack.length - 1]);
             }
         }
 
-        function setTool(t) {
-            tool = t;
-            document.getElementById('mode-hint').innerText = t.toUpperCase() + " MODE";
+        function redo() {
+            const l = layers[activeIdx];
+            if (l.redoStack.length > 0) {
+                playThud();
+                const state = l.redoStack.pop();
+                l.undoStack.push(state);
+                restoreState(l, state);
+            }
         }
 
-        function saveCanvas() {
-            // Flatten layers for saving
-            const tempCanvas = document.createElement('canvas');
-            tempCanvas.width = window.innerWidth;
-            tempCanvas.height = window.innerHeight;
-            const tCtx = tempCanvas.getContext('2d');
-            layers.forEach(l => { if(l.visible) tCtx.drawImage(l.canvas, 0, 0); });
-            
-            const link = document.createElement('a');
-            link.download = 'world_artwork.png';
-            link.href = tempCanvas.toDataURL();
-            link.click();
+        function restoreState(layer, dataUrl) {
+            const img = new Image();
+            img.src = dataUrl;
+            img.onload = () => {
+                layer.ctx.clearRect(0, 0, layer.canvas.width, layer.canvas.height);
+                layer.ctx.drawImage(img, 0, 0);
+            };
         }
 
-        // --- Rest Logic ---
-        const quotes = ["I love 15/16", "Silence", "Breath", "Space", "Drift"];
+        function setTool(t) { tool = t; playThud(); }
+
+        // --- MISC ---
         function spawnText(e) {
-            playTone(800, 'sine', 0.5);
-            const t = document.createElement('div');
-            t.className = 'floating-text';
-            t.innerText = quotes[Math.floor(Math.random()*quotes.length)];
-            t.style.left = e.clientX + 'px';
-            t.style.top = e.clientY + 'px';
+            const t = document.createElement('div'); t.className = 'floating-text';
+            t.innerText = "I love 15/16"; t.style.left = e.clientX + 'px'; t.style.top = e.clientY + 'px';
             document.getElementById('screen-rest').appendChild(t);
             setTimeout(() => t.remove(), 3000);
         }
 
         function toast(msg) {
-            const div = document.createElement('div');
-            div.className = 'floating-text';
-            div.style.bottom = '20%'; div.style.left = '50%';
-            div.style.transform = 'translateX(-50%)';
-            div.innerText = msg;
-            document.body.appendChild(div);
-            playTone(600, 'sine', 0.3);
-            setTimeout(() => div.remove(), 3000);
+            const div = document.createElement('div'); div.className = 'floating-text';
+            div.style.bottom = '20%'; div.style.left = '50%'; div.style.transform = 'translateX(-50%)';
+            div.innerText = msg; document.body.appendChild(div);
+            playThud(); setTimeout(() => div.remove(), 3000);
         }
-
-        document.getElementById('note').addEventListener('input', () => {
-            playTone(150, 'sine', 0.05);
-        });
     </script>
 </body>
 </html>
