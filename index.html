@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>World</title>
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #2c2c2c 0%, #ffffff 100%);
+            --morandi-gray: #9ca3af;
+            --morandi-blue: #b4c4d5;
+            --morandi-green: #c1cdc1;
+            --morandi-pink: #d9c5c2;
+            --text-dark: #333333;
+            --glass-bg: rgba(255, 255, 255, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            user-select: none;
+        }
+
+        body, html {
+            height: 100%;
+            overflow: hidden;
+            background: #fff;
+        }
+
+        /* Screens Management */
+        .screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s ease;
+        }
+
+        .active {
+            display: flex;
+            opacity: 1;
+        }
+
+        /* Exit Button */
+        .exit-btn {
+            position: absolute;
+            top: 30px;
+            left: 30px;
+            cursor: pointer;
+            font-weight: 300;
+            letter-spacing: 1px;
+            color: var(--text-dark);
+            border-bottom: 1px solid var(--text-dark);
+            z-index: 100;
+        }
+
+        /* --- HOME SCREEN --- */
+        #screen-home {
+            background: var(--bg-gradient);
+        }
+
+        .title {
+            position: absolute;
+            top: 20%;
+            font-size: 3rem;
+            font-weight: 200;
+            letter-spacing: 10px;
+            color: #fff;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .glass-container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            padding: 40px 60px;
+            border-radius: 2px;
+            border: 1px solid rgba(255,255,255,0.2);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.05);
+        }
+
+        .menu-list {
+            list-style: none;
+            text-align: center;
+        }
+
+        .menu-item {
+            margin: 20px 0;
+            font-size: 1.2rem;
+            letter-spacing: 4px;
+            color: #444;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .menu-item:hover {
+            color: #000;
+            transform: scale(1.1);
+        }
+
+        /* --- START SCREEN (Drawing) --- */
+        #screen-start {
+            background: #fdfdfd; /* Paper style */
+        }
+
+        .canvas-toolbar {
+            position: absolute;
+            bottom: 30px;
+            display: flex;
+            gap: 20px;
+            background: rgba(240, 240, 240, 0.8);
+            padding: 15px 30px;
+            border-radius: 50px;
+            align-items: center;
+        }
+
+        canvas {
+            cursor: crosshair;
+            touch-action: none;
+        }
+
+        .tool-icon { cursor: pointer; padding: 5px; font-size: 0.9rem; }
+        .active-tool { color: var(--morandi-blue); font-weight: bold; }
+
+        /* --- REST SCREEN --- */
+        #screen-rest {
+            background: linear-gradient(to bottom, #000000, #ffffff);
+            cursor: pointer;
+        }
+
+        .floating-text {
+            position: absolute;
+            color: var(--text-dark);
+            pointer-events: none;
+            animation: fadeOut 3s forwards;
+            font-weight: 300;
+        }
+
+        /* --- END SCREEN (Note) --- */
+        #screen-end {
+            background: #fafafa;
+        }
+
+        .note-container {
+            width: 80%;
+            max-width: 600px;
+            height: 60%;
+        }
+
+        textarea {
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            border: none;
+            border-left: 1px solid #ddd;
+            padding: 20px;
+            font-size: 1rem;
+            resize: none;
+            outline: none;
+            color: #555;
+        }
+
+        /* --- SETTING SCREEN --- */
+        #screen-setting {
+            background: #efefef;
+        }
+
+        .setting-opt {
+            margin: 15px;
+            color: #777;
+            cursor: pointer;
+            font-size: 1.1rem;
+        }
+
+        .toast {
+            position: absolute;
+            bottom: 20%;
+            padding: 10px 20px;
+            background: rgba(0,0,0,0.05);
+            border-radius: 20px;
+            animation: fadeOut 3s forwards;
+        }
+
+        @keyframes fadeOut {
+            0% { opacity: 0; transform: translateY(0); }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { opacity: 0; transform: translateY(-20px); }
+        }
+    </style>
+</head>
+<body>
+
+    <section id="screen-home" class="screen active">
+        <h1 class="title">World</h1>
+        <div class="glass-container">
+            <ul class="menu-list">
+                <li class="menu-item" onclick="nav('screen-start')">START</li>
+                <li class="menu-item" onclick="nav('screen-rest')">REST</li>
+                <li class="menu-item" onclick="nav('screen-end')">END</li>
+                <li class="menu-item" onclick="nav('screen-setting')">SETTING</li>
+            </ul>
+        </div>
+    </section>
+
+    <section id="screen-start" class="screen">
+        <div class="exit-btn" onclick="nav('screen-home')">EXIT</div>
+        <canvas id="paintCanvas"></canvas>
+        <div class="canvas-toolbar">
+            <span id="status-mode" style="margin-right:15px; font-size:0.7rem; color:#999;">MODE: FREE</span>
+            <input type="color" id="colorPicker" value="#333333" style="border:none; width:25px; height:25px; background:none;">
+            <input type="range" id="sizePicker" min="1" max="20" value="2">
+            <span class="tool-icon" onclick="setTool('pen')">Pen</span>
+            <span class="tool-icon" onclick="setTool('eraser')">Eraser</span>
+            <span class="tool-icon" onclick="toggleRuler()">Ruler</span>
+            <span class="tool-icon" onclick="undo()">Undo</span>
+            <span class="tool-icon" onclick="redo()">Redo</span>
+        </div>
+    </section>
+
+    <section id="screen-rest" class="screen" onclick="createFloatingText(event)">
+        <div class="exit-btn" onclick="nav('screen-home')">EXIT</div>
+    </section>
+
+    <section id="screen-end" class="screen">
+        <div class="exit-btn" onclick="nav('screen-home')">EXIT</div>
+        <div class="note-container">
+            <input type="range" min="12" max="48" value="16" oninput="adjustFontSize(this.value)" style="margin-bottom: 20px; width: 100px;">
+            <textarea id="memo" placeholder="Write something..."></textarea>
+        </div>
+    </section>
+
+    <section id="screen-setting" class="screen">
+        <div class="exit-btn" onclick="nav('screen-home')">EXIT</div>
+        <div class="setting-opt" onclick="nav('screen-home')">fruit cup</div>
+        <div class="setting-opt" onclick="showToast('I love you')">mango</div>
+        <div class="setting-opt" onclick="showToast('I love you too')">grape</div>
+        <div id="toast-container"></div>
+    </section>
+
+    <script>
+        // Navigation Logic
+        function nav(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            if(screenId === 'screen-start') initCanvas();
+        }
+
+        // --- DRAWING LOGIC ---
+        let canvas, ctx;
+        let drawing = false;
+        let currentTool = 'pen';
+        let useRuler = false;
+        let startX, startY;
+        let history = [];
+        let step = -1;
+
+        function initCanvas() {
+            canvas = document.getElementById('paintCanvas');
+            ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            saveStep();
+            
+            canvas.addEventListener('mousedown', startDraw);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDraw);
+            canvas.addEventListener('touchstart', e => { e.preventDefault(); startDraw(e.touches[0]); });
+            canvas.addEventListener('touchmove', e => { e.preventDefault(); draw(e.touches[0]); });
+            canvas.addEventListener('touchend', stopDraw);
+        }
+
+        function startDraw(e) {
+            drawing = true;
+            startX = e.clientX;
+            startY = e.clientY;
+            ctx.beginPath();
+            ctx.moveTo(startX, startY);
+        }
+
+        function draw(e) {
+            if (!drawing) return;
+            ctx.lineWidth = document.getElementById('sizePicker').value;
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = currentTool === 'eraser' ? '#fdfdfd' : document.getElementById('colorPicker').value;
+
+            if (useRuler) {
+                // Ruler effect: only updates on stopDraw for a straight line
+            } else {
+                ctx.lineTo(e.clientX, e.clientY);
+                ctx.stroke();
+            }
+        }
+
+        function stopDraw(e) {
+            if (useRuler && drawing) {
+                const endX = e.clientX || e.changedTouches[0].clientX;
+                const endY = e.clientY || e.changedTouches[0].clientY;
+                ctx.lineTo(endX, endY);
+                ctx.stroke();
+            }
+            drawing = false;
+            saveStep();
+        }
+
+        function setTool(t) { 
+            currentTool = t; 
+            useRuler = false; 
+            document.getElementById('status-mode').innerText = "MODE: " + t.toUpperCase();
+        }
+        function toggleRuler() { 
+            useRuler = true; 
+            currentTool = 'pen';
+            document.getElementById('status-mode').innerText = "MODE: RULER";
+        }
+
+        function saveStep() {
+            step++;
+            if (step < history.length) history.length = step;
+            history.push(canvas.toDataURL());
+        }
+
+        function undo() {
+            if (step > 0) {
+                step--;
+                let canvasPic = new Image();
+                canvasPic.src = history[step];
+                canvasPic.onload = () => { ctx.clearRect(0,0,canvas.width,canvas.height); ctx.drawImage(canvasPic, 0, 0); }
+            }
+        }
+
+        function redo() {
+            if (step < history.length - 1) {
+                step++;
+                let canvasPic = new Image();
+                canvasPic.src = history[step];
+                canvasPic.onload = () => { ctx.clearRect(0,0,canvas.width,canvas.height); ctx.drawImage(canvasPic, 0, 0); }
+            }
+        }
+
+        // --- REST LOGIC ---
+        function createFloatingText(e) {
+            const text = document.createElement('div');
+            text.className = 'floating-text';
+            text.innerText = 'I love 15/16';
+            text.style.left = e.clientX + 'px';
+            text.style.top = e.clientY + 'px';
+            document.getElementById('screen-rest').appendChild(text);
+            setTimeout(() => text.remove(), 3000);
+        }
+
+        // --- END LOGIC ---
+        function adjustFontSize(val) {
+            document.getElementById('memo').style.fontSize = val + 'px';
+        }
+
+        // --- SETTING LOGIC ---
+        function showToast(msg) {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerText = msg;
+            document.getElementById('toast-container').appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+    </script>
+</body>
+</html>
